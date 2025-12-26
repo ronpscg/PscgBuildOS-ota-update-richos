@@ -1,0 +1,32 @@
+#
+# Essential
+#
+blob_url=$URL_OTA_SERVER_BASE/<replaced in tester but do keep URL_OTA_SERVER_BASE>
+blob_size=<replaced in tester>
+compression_type=tar.xz
+blob_digest=<replaced in tester>
+digest_type=sha256
+original_blob_filename=<replaced in tester>
+blob_creation_date=<replaced in tester>
+
+#
+#
+# livepatch, and non standard environment related. 
+# If update_type is "livepatch" then if misc_commands is not empty, they are run before (and perhaps instead of) the unpacking.
+# If blob_download_path is not empty, the blob download directories/recommendations will be under this path
+# if blob_extract_path is not empty, unpacking will be done to this place. This allows, for example, designing a system that does not require any information about the
+# partition structure in the target, and in a way also implement clever "by hindsight" design (which is of course never recommended)
+# 
+blob_download_path=
+blob_extract_path=
+update_type=<replaced in tester>
+misc_commands=hardVerbose Hello from the manifest
+misc=stam
+on_done_commands=do_auto_reboot_after_flashing
+#
+# CIA (Confidentiality, Integrity, Authenticity)
+#
+blob_signature=
+signature_type=
+encryption_type=
+signer_public_key=

@@ -1,0 +1,123 @@
+#!/bin/bash
+
+error() {
+	echo -ne "\x1b[31m$@\x1b[0m"
+}
+
+info() {
+	echo -ne "\x1b[32m$@\x1b[0m"
+}
+
+warn() {
+	echo -ne "\x1b[33m$@\x1b[0m"
+}
+
+redBanner() {
+	echo -en "\x1b[41m$@\x1b[0m"
+}
+
+#
+# The objective of this function is to mount the OTA directories on a best effort try, without any logs
+# The reason is that we just want it for a nice print, and if we don't have it - it's good enough for us
+#
+mount_ota_partitions_best_effort() {
+	[ ! -d "${OTA_STATE_BASE_DIR}" ]   && mkdir -p "${OTA_STATE_BASE_DIR}"
+	[ ! -d "${OTA_EXTRACT_BASE_DIR}" ] && mkdir -p "${OTA_EXTRACT_BASE_DIR}"
+
+	if [ "$docker" = "true" -a "$docker_use_bindmount_ota_partitions" = "true" ] ; then
+		# we will keep it more verbose for docker, as I have not tested it in a long while
+		warn "DOING THE DOCKER LOGIC for mount_ota_partitions"
+		docker_mount_ota_partitions_logic
+		return $?
+	fi
+
+	if ! mountpoint "${OTA_STATE_BASE_DIR}" &> /dev/null ; then
+		mount LABEL=otastate "${OTA_STATE_BASE_DIR}"
+	fi
+
+	if ! mountpoint $OTA_EXTRACT_BASE_DIR &> /dev/null  ; then
+		mount LABEL=otaextract "${OTA_EXTRACT_BASE_DIR}"
+	fi
+	return 0
+}
+
+#
+# This can help you see clearly what happens in A/B updates
+# It relies on udev populated links at /dev/disk/... so it might need to be ported to using blkid or something else in case udev systemd is not the one that runs
+#
+show_system_labels_to_partitions_mapping() {
+	echo "--------------------------------------------------------------"
+	echo "Your system partitions and labels in the OTA and boot game are:"
+	(
+	# This is a nice debugging aid, to see what points where, and what has been updated when
+	# if it is first flashing, the second partition name is different, and so it will not be highlighted as "retired"
+	#
+	cd /dev/disk/by-label/
+	for l in *system* ; do
+		case $l in
+			$OTA_ACTIVE_SYSTEM_PARTITION_LABEL)
+				echo -ne "\x1b[32m"
+				;;
+			$OTA_STANDBY_SYSTEM_PARTITION_LABEL)
+				echo -ne "\x1b[31m"
+				;;
+			$OTA_TESTED_CANDIDATE_SYSTEM_PARTITION_LABEL)
+				echo -ne "\x1b[33m"
+				;;
+			${OTA_ACTIVE_SYSTEM_PARTITION_LABEL}rw)
+				 # Check if there is an active overlay. It would work nicely if the names remain the same as at the time of writing, e.g system/systemrw.
+				 #Will also work for the candidate, if the writable overlay partition label is systemrw.
+				if mount | grep overlayfs | grep -q "${OTA_ACTIVE_SYSTEM_PARTITION_LABEL}rw" ; then
+					echo -ne "\x1b[35m"
+				fi
+				;;
+		esac
+
+		echo "$l -> $(readlink -f $l)" ;
+		echo -ne "\x1b[0m"
+	done
+	)
+	echo "--------------------------------------------------------------"
+}
+
+main() {
+	. /opt/ota/otaCommon.sh || error "Failed to source the OTA definition file. Please check if you have the ota code, and if it is not installed in a writable overlay, without having it mounted(!)"
+
+	if [ ! -e /etc/thepscgos-release ] ; then
+		warn "Not a PSCG OS. Are you sure you want this message of the day, or are you just feeling lucky?"
+		exit 1
+	fi
+
+	show_system_labels_to_partitions_mapping
+
+	# We can put it on fstab, we can wait for the ota service to do it (Although then the user could login before the service is called)
+	# Let's do the latter, and if it imposes too many warning on "already mounted et. al" on the ota service, we will remove it
+
+	mount_ota_partitions_best_effort
+
+
+	# If we have some information about a previously flashed system, go ahead and show it
+	info "$(grep VERSION /etc/thepscgos-release) ($(get_last_valid_active_digest))" ; warn "$(uptime) "
+	echo -e "\nrootfs type and space: $(df -h / | tail -1)"
+
+	if [ -f "${OTA_STATE_FILE}" ] ; then
+		grep -q idle "${OTA_STATE_FILE}" || warn "\nOTA state is $(get_state) "
+		if [ -f "${OTA_REFLASH_COUNTER_FILE}" ] ; then
+			reflash_counter=$(cat "${OTA_REFLASH_COUNTER_FILE}")
+			# first flashing is considered a "reflash" so 1 is a legit value when testing the OTA image before qualifiyng it as operational
+			if [ "$reflash_counter" -gt "1" ] ; then
+				redBanner "\nReflash counter is $(cat "${OTA_REFLASH_COUNTER_FILE}") "
+			fi
+		fi
+	fi
+
+	# all kinds of OTA in progress stuff
+	if [ -f "${OTA_SUCCESS_BOOT_COUNTER_FILE}" -o -f "${OTA_FAIL_BOOT_COUNTER_FILE}" ] ; then
+		[ -f "${OTA_LAST_DOWNLOADED_DIGEST_FILE}" ] && echo "Updating to $(cat "${OTA_LAST_DOWNLOADED_DIGEST_FILE}")  "
+		[ -f "${OTA_SUCCESS_BOOT_COUNTER_FILE}" ] && info "Success boot counter: $(cat "${OTA_SUCCESS_BOOT_COUNTER_FILE}")  "
+		[ -f "${OTA_FAIL_BOOT_COUNTER_FILE}" ] && error "Fail boot counter: $(cat "${OTA_FAIL_BOOT_COUNTER_FILE}")\n"
+	fi
+	echo
+}
+
+main $@

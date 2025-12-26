@@ -1,0 +1,14 @@
+[Unit]
+Description=Systemd OTA update service for PscgBuildOS
+Wants=network-online.target
+
+[Service]
+# Run bash explicitly, as we don't like dash, it doesn't like "source", and we prefer it over "." :P
+# If there is no bash, don't use systemd. If you find a reason to use systemd without bash, it's easy to modify the code
+ExecStart=/bin/bash /opt/ota/ota-update.sh
+SyslogIdentifier=ota-update
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target
