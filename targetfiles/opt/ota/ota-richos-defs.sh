@@ -59,9 +59,6 @@ init_env_rich_rootfs() {
 
 	: ${OTA_UPDATE_CHECK_INTERVAL_SEC=60}
 
-	check_network_interface_is_up_for_development
-
-
 	: ${MANIFESTCMD_AUTO_REBOOT_AFTER_FLASHING=do_auto_reboot_after_flashing}
 	set +a
 }

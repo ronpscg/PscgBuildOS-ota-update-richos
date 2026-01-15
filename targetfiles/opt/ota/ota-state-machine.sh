@@ -108,12 +108,7 @@ check_update_manifest() (
 					# This is kept as a comment here, because it makes it easier to discuss it. At this point, I deliberately don't add the URL
 					# to the definitions.
 					# Read the comments of the function. A real system can also get along without it, if the server is set up properly
-	if [ -z "$URL_OTA_MANIFEST" ] ; then
-		warn "Your OTA update URLs are not set yet, either because you did not provide URL_OTA_SERVER_BASE, or because the network is not up yet and it could not be set for you"
-		# I don't think it is needed check_network_interface_is_up_for_development	# This also sets the URL_OTA_MANIFEST. In development (QEMU) mode, if there is no network, it will wait
-								# rather then just failing and waiting for the next respawn of the service (which is fine)
-
-	fi	
+	
 	info_do_or_die wget $URL_OTA_MANIFEST -q -O $manifest_file
 
 	if ! verify_manifest ; then
@@ -162,6 +157,13 @@ download_update() {
 #	1 if there is no update/if cannot get update details from server
 #
 check_for_updates() {
+	if [ -z "$URL_OTA_MANIFEST" ] ; then
+		warn "Your OTA update URLs are not set yet, either because you did not provide URL_OTA_SERVER_BASE, or because the network is not up yet and it could not be set for you"
+		check_network_interface_is_up_for_development
+		# This also sets the URL_OTA_MANIFEST. In development (QEMU) mode, if there is no network, it will wait
+		# rather then just failing and waiting for the next respawn of the service (which is fine)
+	fi
+
 	if check_update_manifest ; then
 		# Note we don't check for return code for the next statement. It is intended, as if there is a fatal error,
 		# there is no point in continuing the process as it means the provided manifest is broken

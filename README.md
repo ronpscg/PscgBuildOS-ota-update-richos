@@ -80,4 +80,11 @@ chmod +x wip-example/run-commands.sh
 tar -C wip-example -cf livepatch-example.tar . # you can use other compressing methods if you want
 ```
 
+## Videos
+This is (most likely) a partial list of videos.
+-  PscgBuildOS: OTA service initramfs update flow modification - a series that shows how to troubleshoot and debug at multiple levels, an intended bug that is completely resolvable by the code in this subsystem (this git repo, if it keeps being isolated)
+  - [Part 1 - motivation and bugs description](https://www.youtube.com/watch?v=TsMGX3pX2Pg&list=PLBaH8x4hthVysdRTOlg2_8hL6CWCnN5l-&index=120)
+  - [Part 2 - debugging in initramfs (stopping in the right place and modifying overlay-install-instructions)](https://www.youtube.com/watch?v=hiYod7Dp_jI&list=PLBaH8x4hthVysdRTOlg2_8hL6CWCnN5l-&index=121)
+  - [Part 3 - debugging in the rootfs](https://www.youtube.com/watch?v=Nakch9w-yco&list=PLBaH8x4hthVysdRTOlg2_8hL6CWCnN5l-&index=122)
+  - [Part 4 - finalizing, solving, rebuilding PscgBuildOS and showing the full cycle including a livepatch and a A/B update demonstration](https://www.youtube.com/watch?v=tXDdY_-qG7s&list=PLBaH8x4hthVysdRTOlg2_8hL6CWCnN5l-&index=123)
 
