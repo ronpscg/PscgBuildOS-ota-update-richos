@@ -14,7 +14,7 @@
 
 usage() {
 	echo "usage: $0 <livepatch|fullota> [updateota]"
-	echo "Must also provide valid manifest, blob, and workdir environment variables"
+	echo -e "Must also provide valid \e[33mmanifest\e[0m, \e[33mblob\e[0m, and \e[33mworkdir\e[0m environment variables"
 	exit 1
 }
 

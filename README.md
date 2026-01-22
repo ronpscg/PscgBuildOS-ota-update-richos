@@ -4,6 +4,17 @@
 
 Some things that are not obvious or worth noting if you want to test it by yourself are presented below.
 
+## Creating the OTA tarball
+```
+make-ota-userspace-tarball.sh
+```
+Please see the source code for usage, environment variables, and default values. It is a trivial script. You can refer to the *PscgBuildOS* code for usage examples. While this project is kept in a separate repo,
+it is pretty much a first class citizen of the build system.
+
+Note: you can popualte *targetfiles/opt/ota/ota.config* with variables such as the `URL_OTA_SERVER_BASE` before packaging if you are working on the OTA code itself. Do not forget it there though, if you build the project
+as part of another project. If you are not familar with the code it is recommended you do not create it at all.
+You can see how *PscgBuildOS* uses this mechanism.
+
 ## Testing theory and practice
 The easiest way to test (except for, of course, setting an operational server with a certificate and https, etc.) would be to:
 - Use http in your localhost and serve files statically. For example:
@@ -35,6 +46,29 @@ manifest=<path-to-reference-manifest> blob=<path-to-served-blob> ./ota-server.sh
 - *livepatch*: Read some of the examples below. I think there are also videos for this there as well
 
 ## Testing Examples
+
+### Testing example: serving a full OTA image
+
+These two equivalent examples (one is just easier to copy paste as a one liner) take the output of the PscgBuildOS build artifacts, and serves a full OTA image.
+In both, you can ommit *workdir* which would then default to */tmp/test-ota-server/otafiles*. If you specify *workdir* and you want everything to work nicely and automatically,
+make sure that it ends with */otafiles* because this is how we populate the default OTA manifests.
+
+Example one: nicely organized in a multilne subshell:
+```
+(
+# set your files
+export workdir=/tmp/foobar/otafiles 
+export blob=/home/ron/PscgBuildOS/out-amlogic/build/artifacts/ota/pscg_busyboxos-arm64.tar.xz 
+export manifest=/home/ron/PscgBuildOS/out-amlogic/build/artifacts/ota/pscg_busyboxos-arm64.tar.xz.manifest 
+
+./hostfiles/test/ota-server.sh  fullota
+)
+```
+
+Example one: one liner
+```
+workdir=/tmp/foobar/otafiles blob=/home/ron/PscgBuildOS/out-amlogic/build/artifacts/ota/pscg_busyboxos-arm64.tar.xz manifest=/home/ron/PscgBuildOS/out-amlogic/build/artifacts/ota/pscg_busyboxos-arm64.tar.xz.manifest ./hostfiles/test/ota-server.sh  fullota
+```
 
 ###  Testing example: Updating the OTA code via a livepatch
 To do this example, you don't need to do anything else other than run the following command:
