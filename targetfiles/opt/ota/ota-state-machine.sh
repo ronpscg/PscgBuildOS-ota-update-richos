@@ -147,7 +147,6 @@ download_update() {
 	fi
 }
 
-
 #
 # Check for software updates, and populate some control variables from the downloaded manifest
 # In a proper implementation, either the downloaded manifest would be signed and validated, or the connection would be over TLS/SSL with a trusted certificate etc.
@@ -157,12 +156,7 @@ download_update() {
 #	1 if there is no update/if cannot get update details from server
 #
 check_for_updates() {
-	if [ -z "$URL_OTA_MANIFEST" ] ; then
-		warn "Your OTA update URLs are not set yet, either because you did not provide URL_OTA_SERVER_BASE, or because the network is not up yet and it could not be set for you"
-		check_network_interface_is_up_for_development
-		# This also sets the URL_OTA_MANIFEST. In development (QEMU) mode, if there is no network, it will wait
-		# rather then just failing and waiting for the next respawn of the service (which is fine)
-	fi
+	initialize_update_manifest_url # This is done to allow some easy development features in emulators and docker
 
 	if check_update_manifest ; then
 		# Note we don't check for return code for the next statement. It is intended, as if there is a fatal error,

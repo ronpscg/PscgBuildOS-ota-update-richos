@@ -3,6 +3,20 @@
 # It is relevant only for the rich/operational rootfs
 #
 
+initialize_update_manifest_url() {
+	if [ -z "$URL_OTA_MANIFEST" ] ; then
+		if [ -n "$URL_OTA_SERVER_BASE" ] ; then
+			: ${URL_OTA_MANIFEST:="$URL_OTA_SERVER_BASE/otafiles/ota-manifest"}
+			return
+		fi
+		
+		warn "Your OTA update URLs are not set yet, either because you did not provide URL_OTA_SERVER_BASE, or because the network is not up yet and it could not be set for you"
+		check_network_interface_is_up_for_development
+		# This also sets the URL_OTA_MANIFEST. In development (QEMU) mode, if there is no network, it will wait
+		# rather then just failing and waiting for the next respawn of the service (which is fine)
+	fi
+}
+
 #
 # Set the base URL for a server. This allows to easily quick in trivially networked emulators or docker instances
 # The URL is set *only* if it was not set prior to that, so an operational system can set it
@@ -53,6 +67,11 @@ notify_server_placeholder() {
 }
 
 init_env_rich_rootfs() {
+	# Allow the build system to provide a configuration file when packing the product
+	# this is mostly useful for setting URL_OTA_SERVER_BASE to a desired IP, regardless
+	# of the network status (otherwise a development heuristic is used)
+	: ${OPTIONAL_OPERATIONAL_CONFIG_FILE=/opt/ota/ota.config}
+	[ -f "$OPTIONAL_OPERATIONAL_CONFIG_FILE" ] && source $OPTIONAL_OPERATIONAL_CONFIG_FILE
 	set -a
 	# Allow a developer to set a config file and source it
 	[ -n "$OTA_DEV_CONFIG_FILE" ] && source $OTA_DEV_CONFIG_FILE
