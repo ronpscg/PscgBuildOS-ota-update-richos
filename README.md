@@ -122,3 +122,6 @@ This is (most likely) a partial list of videos.
   - [Part 3 - debugging in the rootfs](https://www.youtube.com/watch?v=Nakch9w-yco&list=PLBaH8x4hthVysdRTOlg2_8hL6CWCnN5l-&index=122)
   - [Part 4 - finalizing, solving, rebuilding PscgBuildOS and showing the full cycle including a livepatch and a A/B update demonstration](https://www.youtube.com/watch?v=tXDdY_-qG7s&list=PLBaH8x4hthVysdRTOlg2_8hL6CWCnN5l-&index=123)
 
+- PscgBuildOS: Physical/"Real" (non-virtual) devices
+  - [PscgBuildOS: AMLogic full A/B OTA flows showcasing: avahi, Debian, Alpine, pscg busyboxos AB updates](https://www.youtube.com/watch?v=RsQQCjLLlYs&list=PLBaH8x4hthVysdRTOlg2_8hL6CWCnN5l-&index=127)
+
